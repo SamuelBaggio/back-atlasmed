@@ -21,21 +21,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        return http
-                .cors()
-                .and()
-                .authorizeHttpRequests()
-                    .requestMatchers(HttpMethod.POST, "/api/registrar").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
-                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                    .anyRequest().authenticated()
-                .and()
-                .csrf().disable()
-                .formLogin().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+        return http.authorizeHttpRequests()
+                        .anyRequest().permitAll()
+                    .and()
+                        .csrf().disable().cors().and()
+                        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .and()
+                        .headers().frameOptions().sameOrigin()
+                    .and()
+                    .build();
     }  
     
     @Bean

@@ -1,5 +1,9 @@
 package br.com.fiap.atlasmed.controllers;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,6 +14,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.fiap.atlasmed.exceptions.RestNotFoundException;
 import br.com.fiap.atlasmed.model.Consulta;
+import br.com.fiap.atlasmed.model.Paciente;
 import br.com.fiap.atlasmed.repository.ConsultaRepository;
 import br.com.fiap.atlasmed.repository.MedicoRepository;
 import br.com.fiap.atlasmed.repository.PacienteRepository;
@@ -31,80 +37,67 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import oracle.net.aso.c;
 
 @RestController
 @RequestMapping("/api/consulta")
-@Slf4j
 @SecurityRequirement(name = "bearer-key")
 @Tag(name="consulta")
 public class ConsultaController {
+
+    Logger log = LoggerFactory.getLogger(getClass());
     
     @Autowired
-    ConsultaRepository consultaRepository;
-
-    @Autowired
-    MedicoRepository medicoRepository;
-
-    @Autowired
-    PacienteRepository pacienteRepository;
+    ConsultaRepository repository;
 
     @Autowired
     PagedResourcesAssembler<Object> assembler;
 
     @GetMapping
-    public PagedModel<EntityModel<Object>> index(@RequestParam(required = false) String busca,
-        @ParameterObject @PageableDefault(size=3) Pageable pageable){
-
-            Page<Consulta> consultas = (busca == null) ?
-                consultaRepository.findAll(pageable):
-                consultaRepository.findByPaciente(busca, pageable);
-
-            return assembler.toModel(consultas.map(Consulta::toEntityModel));
-
-        }
-
-    @GetMapping("{id}")
-    public EntityModel<Consulta> show(@PathVariable Long id){
-        log.info("detalhando consulta" + id);
-
-        var consulta = consultaRepository.findById(id)
-            .orElseThrow(() -> new RestNotFoundException("consulta não encontrado!"));
-
-        return consulta.toEntityModel();
+    @CrossOrigin
+    public List<Consulta> index(){
+        return repository.findAll();
     }
 
     @PostMapping
-    public ResponseEntity<Object> create(@RequestBody @Valid Consulta consulta) {
+    @CrossOrigin
+    public ResponseEntity<Consulta> create(@RequestBody @Valid Consulta consulta){
         log.info("cadastrando consulta" + consulta);
-        consultaRepository.save(consulta);
-        // consulta.setPaciente(pacienteRepository.findById(alimento.getEmpresa().getId()).get());        consulta.setEmpresa(empresaRepository.findById(alimento.getEmpresa().getId()).get());
-        // consulta.setMedico(medicoRepository.findById(alimento.getEmpresa().getId()).get());        consulta.setEmpresa(empresaRepository.findById(alimento.getEmpresa().getId()).get());
-        return ResponseEntity.status(HttpStatus.CREATED).body(consulta.toEntityModel());
+        repository.save(consulta);
+        return ResponseEntity.status(HttpStatus.CREATED).body(consulta);
+    }
+
+    @GetMapping("{id}")
+    @CrossOrigin
+    public ResponseEntity<Consulta> show(@PathVariable Long id){
+        log.info("detalhando consulta" + id);
+        return ResponseEntity.ok(getConsulta(id));
     }
 
     @DeleteMapping("{id}")
+    @CrossOrigin
     public ResponseEntity<Consulta> destroy(@PathVariable Long id){
         log.info("apagando consulta" + id);
-        var consulta = consultaRepository.findById(id)
-            .orElseThrow(() -> new RestNotFoundException("consulta não encontrado!"));
 
-        consultaRepository.delete(consulta);
+        repository.delete(getConsulta(id));
 
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")
-    public EntityModel<Consulta> update(@PathVariable Long id, @RequestBody @Valid Consulta consulta){
+    @CrossOrigin
+    public ResponseEntity<Consulta> update(@PathVariable Long id, @RequestBody @Valid Consulta consulta){
         log.info("alterando consulta" + id);
-
-        consultaRepository.findById(id)
-            .orElseThrow(() -> new RestNotFoundException("consulta não encontrado!"));
-
+        getConsulta(id);
         consulta.setId(id);
-        consultaRepository.save(consulta);
-
-        return consulta.toEntityModel();
+        repository.save(consulta);
+        return ResponseEntity.ok(consulta       );
     }
 
+    private Consulta getConsulta(Long id){
+        return repository.findById(id)
+            .orElseThrow(() -> new RestNotFoundException("Consulta não encontrada!"));
+    }
+
+
 }
+    

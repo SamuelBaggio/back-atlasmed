@@ -1,10 +1,5 @@
 package br.com.fiap.atlasmed.model;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.EntityModel;
-
-import br.com.fiap.atlasmed.controllers.ConsultaController;
-import br.com.fiap.atlasmed.controllers.PacienteController;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,8 +17,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @Data
 @NoArgsConstructor
@@ -76,13 +69,13 @@ public class Consulta {
     )
     private Medico medico;
 
-    public EntityModel<Consulta> toEntityModel(){
-        return EntityModel.of(
-            this,
-            linkTo(methodOn(ConsultaController.class).show(id)).withSelfRel(),
-            linkTo(methodOn(ConsultaController.class).destroy(id)).withRel("delete"),
-            linkTo(methodOn(ConsultaController.class).index(null, Pageable.unpaged())).withRel("all"),
-            linkTo(methodOn(PacienteController.class).show(this.getPaciente().getId())).withRel("paciente")
-        );
-    }
+    // public EntityModel<Consulta> toEntityModel(){
+    //     return EntityModel.of(
+    //         this,
+    //         linkTo(methodOn(ConsultaController.class).show(id)).withSelfRel(),
+    //         linkTo(methodOn(ConsultaController.class).destroy(id)).withRel("delete"),
+    //         linkTo(methodOn(ConsultaController.class).index(null, Pageable.unpaged())).withRel("all"),
+    //         linkTo(methodOn(PacienteController.class).show(this.getPaciente().getId())).withRel("paciente")
+    //     );
+    // }
 }
